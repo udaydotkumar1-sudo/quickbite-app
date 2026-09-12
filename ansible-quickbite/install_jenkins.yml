@@ -1,0 +1,62 @@
+---
+- name: Install and Configure Jenkins on Control Node
+  hosts: localhost
+  connection: local
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install OpenJDK 17 and dependencies
+      apt:
+        name:
+          - openjdk-21-jdk
+          - curl
+          - gnupg
+          - apt-transport-https
+          - docker.io
+        state: present
+
+    - name: Download Jenkins GPG key
+      get_url:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+        dest: /tmp/jenkins.key
+        mode: '0644'
+
+    - name: Dearmor and install Jenkins keyring
+      shell: |
+        gpg --dearmor < /tmp/jenkins.key > /etc/apt/trusted.gpg.d/jenkins.gpg
+        chmod 644 /etc/apt/trusted.gpg.d/jenkins.gpg
+      args:
+        creates: /etc/apt/trusted.gpg.d/jenkins.gpg
+
+    - name: Add Jenkins official repository entry
+      apt_repository:
+        repo: "deb https://pkg.jenkins.io/debian-stable binary/"
+        state: present
+        filename: jenkins
+        update_cache: yes
+
+    - name: Install Jenkins
+      apt:
+        name: jenkins
+        state: present
+
+    - name: Add jenkins user to docker group
+      user:
+        name: jenkins
+        groups: docker
+        append: yes
+
+    - name: Ensure Jenkins service is started and enabled
+      systemd:
+        name: jenkins
+        state: started
+        enabled: yes
+
+    - name: Restart Docker to apply group changes
+      systemd:
+        name: docker
+        state: restarted

@@ -1,0 +1,102 @@
+---
+- name: Application Server Configuration
+  hosts: app
+  become: yes
+  tasks:
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install required prerequisite packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+
+    - name: Install Docker and Docker Compose plugin
+      apt:
+        name:
+          - docker.io
+          - docker-compose-v2
+        state: present
+
+    - name: Ensure Docker service is started and enabled on boot
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Verify Docker installation
+      command: docker --version
+      register: docker_version_output
+      changed_when: false
+
+    - name: Display Docker version
+      debug:
+        var: docker_version_output.stdout
+
+    - name: Verify Docker Compose installation
+      command: docker compose version
+      register: compose_version_output
+      changed_when: false
+
+    - name: Display Docker Compose version
+      debug:
+        var: compose_version_output.stdout
+
+    - name: Configure environment for automatic container restarts
+      copy:
+        dest: /etc/docker/daemon.json
+        content: |
+          {
+            "live-restore": true
+          }
+        mode: '0644'
+      notify: Reload Docker daemon
+
+  handlers:
+    - name: Reload Docker daemon
+      systemd:
+        name: docker
+        state: reloaded
+
+- name: Database Server Configuration
+  hosts: db
+  become: yes
+  tasks:
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install MySQL Server
+      apt:
+        name: mysql-server
+        state: present
+
+    - name: Ensure MySQL service is started and enabled on boot
+      systemd:
+        name: mysql
+        state: started
+        enabled: yes
+
+    - name: Verify MySQL service status
+      command: systemctl is-active mysql
+      register: mysql_status
+      changed_when: false
+
+    - name: Display MySQL status
+      debug:
+        msg: "MySQL status is: {{ mysql_status.stdout }}"
+
