@@ -1,11 +1,11 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_HUB_REPO = '<YOUR_DOCKERHUB_USERNAME>/quickbite-frontend'
-        APP_SERVER_IP   = '<APP_SERVER_PUBLIC_IP>'
-        DOCKER_CREDS    = credentials('dockerhub-credentials')
-    }
+environment {
+    DOCKER_HUB_REPO = 'udaykumar/quickbite-frontend'
+    APP_SERVER_IP   = '54.12.34.56'
+    DOCKER_CREDS    = credentials('dockerhub-credentials')
+}
 
     stages {
         stage('Stage 1 — Checkout') {
