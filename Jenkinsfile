@@ -2,7 +2,7 @@ pipeline {
     agent any
 
 environment {
-    DOCKER_HUB_REPO = 'udaykumar/quickbite-frontend'
+    DOCKER_HUB_REPO = 'udayadmin1/quickbite-frontend'
     APP_SERVER_IP   = '54.12.34.56'
     DOCKER_CREDS    = credentials('dockerhub-credentials')
 }
