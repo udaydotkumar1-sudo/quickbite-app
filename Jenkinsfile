@@ -3,7 +3,7 @@ pipeline {
 
 environment {
     DOCKER_HUB_REPO = 'udayadmin1/quickbite-frontend'
-    APP_SERVER_IP   = '44.202.216.53'
+    APP_SERVER_IP   = '3.237.102.98'
     DOCKER_CREDS    = credentials('dockerhub-credentials')
 }
 
